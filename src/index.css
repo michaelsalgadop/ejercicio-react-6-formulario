@@ -1,6 +1,9 @@
 * {
   box-sizing: border-box;
 }
+:root {
+  --texto-secundario: rgb(143, 143, 143);
+}
 body {
   margin: 0;
   padding: 0;
@@ -8,4 +11,30 @@ body {
 ul li {
   text-decoration: none;
   margin-top: 0;
+}
+.rellene-formulario {
+  color: var(--texto-secundario);
+  display: inline-block;
+  margin: 20px 0;
+}
+.botones {
+  padding-bottom: 20px;
+}
+.botones button + button {
+  margin-left: 30px;
+}
+.pasos {
+  min-height: calc(100vh - 172px);
+}
+.contenedor-principal {
+  min-height: calc(100vh - 64px);
+}
+.invisible {
+  visibility: hidden;
+}
+.negrita {
+  font-weight: bold;
+}
+.error {
+  color: rgb(255, 35, 35);
 }
