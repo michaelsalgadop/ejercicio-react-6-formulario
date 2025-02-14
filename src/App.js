@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
+import { Cabecera } from "./componentes/Cabecera/Cabecera";
+import { Errores } from "./componentes/Errores/Errores";
+import { Botones } from "./componentes/Botonera/Botones";
+import { Paso1 } from "./componentes/Pasos/Paso1";
+import { Paso2 } from "./componentes/Pasos/Paso2";
+import { Paso3 } from "./componentes/Pasos/Paso3";
+import { Paso4 } from "./componentes/Pasos/Paso4";
 import { DateTime, Interval } from "luxon";
-
 function App() {
   const [paso, setPaso] = useState(1);
   const [datos, setDatos] = useState({
@@ -15,8 +21,7 @@ function App() {
     contrasenyaLogin: "",
     recordarContrasenya: false,
   });
-  const [anyo, setAnyo] = useState(null);
-  const setDato = (e) => {
+  const setDatoPorEvento = (e) => {
     const elemento = e.target;
     setDatos({
       ...datos,
@@ -24,27 +29,7 @@ function App() {
         elemento.type === "checkbox" ? elemento.checked : elemento.value,
     });
   };
-  const getAnyos = (event) => {
-    const valorFecha = event.target.value;
-    const fechaNacimiento = DateTime.fromISO(valorFecha);
-    if (fechaNacimiento > DateTime.now() || !fechaNacimiento.isValid) {
-      /** Pasamos prevDatos, que podríamos poner lo que quisieramos, porque
-       * puede que no se actualize el estado correctamente si datos aún
-       * no ha sido actualizado en ese render. */
-      setDatos((prevDatos) => ({
-        ...prevDatos,
-        fechaNacimiento: "", // Limpia el campo solo si la fecha es inválida
-      }));
-      return setAnyo(null);
-    }
-    const { years: anyosQueTienes } = Interval.fromDateTimes(
-      fechaNacimiento,
-      DateTime.now()
-    )
-      .toDuration(["years"])
-      .toObject();
-    setAnyo(Math.floor(anyosQueTienes));
-  };
+  const setDatoPorFuncion = (callback) => setDatos(callback);
   const comprobarFormulario = () => {
     const {
       nombre,
@@ -81,253 +66,71 @@ function App() {
       console.error(error.message);
     }
   };
+  const [anyo, setAnyo] = useState(null);
+  const getAnyos = (event) => {
+    const valorFecha = event.target.value;
+    const fechaNacimiento = DateTime.fromISO(valorFecha);
+    if (fechaNacimiento > DateTime.now() || !fechaNacimiento.isValid) {
+      /** Pasamos prevDatos, que podríamos poner lo que quisieramos, porque
+       * puede que no se actualize el estado correctamente si datos aún
+       * no ha sido actualizado en ese render. */
+      setDatoPorFuncion((prevDatos) => ({
+        ...prevDatos,
+        fechaNacimiento: "", // Limpia el campo solo si la fecha es inválida
+      }));
+      return setAnyo(null);
+    }
+    const { years: anyosQueTienes } = Interval.fromDateTimes(
+      fechaNacimiento,
+      DateTime.now()
+    )
+      .toDuration(["years"])
+      .toObject();
+    setAnyo(Math.floor(anyosQueTienes));
+  };
   const [erroresFormulario, setErroresFormulario] = useState([]);
-  const [checkFormulario, setCheckFormulario] = useState(false);
-  useEffect(() => {
-    setCheckFormulario(comprobarFormulario());
-  }, [datos, paso]);
+  const checkFormulario = comprobarFormulario();
 
   return (
     <>
-      <header>
-        <span
-          className={`rellene-formulario ${
-            paso > 3 ? "invisible" : ""
-          } text-center w-100`}
-        >
-          Rellene el siguiente formulario con su información:
-        </span>
-      </header>
+      <Cabecera paso={paso}></Cabecera>
       <main className="contenedor-principal container-fluid">
         {paso < 4 && (
           <form>
             <div className="pasos">
               {paso === 1 && (
-                <div id="paso-1">
-                  <h2 className="titulo-paso text-center">
-                    Paso 1: Datos personales.
-                  </h2>
-                  <div className="row">
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="nombre">Nombre</label>
-                      <input
-                        type="text"
-                        name="nombre"
-                        id="nombre"
-                        className="form-control"
-                        value={datos.nombre}
-                        onChange={setDato}
-                      />
-                    </div>
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="apellidos">Apellidos</label>
-                      <input
-                        type="text"
-                        name="apellidos"
-                        id="apellidos"
-                        className="form-control"
-                        value={datos.apellidos}
-                        onChange={setDato}
-                      />
-                    </div>
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="fechaNacimiento">
-                        Fecha de nacimiento
-                      </label>
-                      <div className="input-group align-items-center">
-                        <input
-                          type="date"
-                          name="fechaNacimiento"
-                          id="fechaNacimiento"
-                          className="form-control"
-                          value={datos.fechaNacimiento}
-                          onChange={(evento) => {
-                            setDato(evento);
-                            getAnyos(evento);
-                          }}
-                        />
-                        <span className="ml-1">{anyo} años</span>
-                      </div>
-                    </div>
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="correo">Correo electrónico</label>
-                      <input
-                        type="email"
-                        name="correo"
-                        id="correo"
-                        className="form-control"
-                        value={datos.correo}
-                        onChange={setDato}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <Paso1
+                  datos={datos}
+                  setDato={setDatoPorEvento}
+                  getAnyos={getAnyos}
+                  anyo={anyo}
+                ></Paso1>
               )}
               {paso === 2 && (
-                <div id="paso-2">
-                  <h2 className="titulo-paso text-center">
-                    Paso 2: Datos de acceso.
-                  </h2>
-                  <div className="row">
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="nombreUsuario">Nombre de usuario</label>
-                      <input
-                        type="text"
-                        name="nombreUsuario"
-                        id="nombreUsuario"
-                        className="form-control"
-                        value={datos.nombreUsuario}
-                        onChange={setDato}
-                      />
-                    </div>
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="contrasenya">Contraseña</label>
-                      <input
-                        type="password"
-                        name="contrasenya"
-                        id="contrasenya"
-                        className="form-control"
-                        value={datos.contrasenya}
-                        onChange={setDato}
-                      />
-                    </div>
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="repetirContrasenya">
-                        Repetir contraseña
-                      </label>
-                      <input
-                        type="password"
-                        name="repetirContrasenya"
-                        id="repetirContrasenya"
-                        className="form-control"
-                        value={datos.repetirContrasenya}
-                        onChange={setDato}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <Paso2
+                  datos={datos}
+                  setDatoPorEvento={setDatoPorEvento}
+                ></Paso2>
               )}
               {paso === 3 && (
-                <div id="paso-3">
-                  <h2 className="titulo-paso text-center">Paso 3: Login.</h2>
-                  <div className="row">
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="nombreUsuarioLogin">
-                        Nombre de usuario
-                      </label>
-                      <input
-                        type="text"
-                        name="nombreUsuarioLogin"
-                        id="nombreUsuarioLogin"
-                        className="form-control"
-                        value={datos.nombreUsuarioLogin}
-                        onChange={setDato}
-                      />
-                    </div>
-                    <div className="form-group col-12 col-md-6">
-                      <label htmlFor="contrasenyaLogin">Contraseña</label>
-                      <input
-                        type="password"
-                        name="contrasenyaLogin"
-                        id="contrasenyaLogin"
-                        className="form-control"
-                        value={datos.contrasenyaLogin}
-                        onChange={setDato}
-                      />
-                    </div>
-                    <div className="form-check col-12 col-md-6">
-                      <input
-                        type="checkbox"
-                        name="recordarContrasenya"
-                        id="recordarContrasenya"
-                        className="mr-1"
-                        checked={datos.recordarContrasenya}
-                        onChange={setDato}
-                      />
-                      <label htmlFor="recordarContrasenya">
-                        Recordar contraseña
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                <Paso3
+                  datos={datos}
+                  setDatoPorEvento={setDatoPorEvento}
+                ></Paso3>
               )}
             </div>
             {erroresFormulario.length > 0 && (
-              <div className="row">
-                <div className="col-12">
-                  <ul>
-                    {erroresFormulario.map((error) => (
-                      <li key={error} className="error">
-                        {error}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              <Errores erroresFormulario={erroresFormulario}></Errores>
             )}
-            <div className="row">
-              <div className="botones col-12 d-flex justify-content-center align-items-center p-b-md">
-                {paso === 2 && (
-                  <button
-                    type="button"
-                    className="btn-paso-anterior btn btn-secondary"
-                    onClick={() => setPaso(paso - 1)}
-                  >
-                    Anterior
-                  </button>
-                )}
-                {paso <= 3 && (
-                  <button
-                    type="button"
-                    className={`btn ${
-                      paso === 3 ? "btn-success" : "btn-primary"
-                    }`}
-                    onClick={() => {
-                      if (validarCampos()) {
-                        setPaso(paso + 1);
-                      }
-                    }}
-                    disabled={checkFormulario}
-                  >
-                    {paso === 3 ? "Acceder" : "Siguiente"}
-                  </button>
-                )}
-              </div>
-            </div>
+            <Botones
+              paso={paso}
+              setPaso={setPaso}
+              validarCampos={validarCampos}
+              checkFormulario={checkFormulario}
+            ></Botones>
           </form>
         )}
-        {paso === 4 && (
-          <div id="paso-4">
-            <h2 className="titulo-paso text-center">Recogida de datos</h2>
-            <p>
-              Tu nombre es: <span className="negrita">{datos.nombre}</span>
-            </p>
-            <p>
-              Tus apellidos: <span className="negrita">{datos.apellidos}</span>
-            </p>
-            <p>
-              Tu fecha de nacimiento:{" "}
-              <span className="negrita">{datos.fechaNacimiento}</span>
-            </p>
-            <p>
-              Tu correo: <span className="negrita">{datos.correo}</span>
-            </p>
-            <p>
-              Tu nombre de usuario:{" "}
-              <span className="negrita">{datos.nombreUsuario}</span>
-            </p>
-            <p>
-              Tu contrasenya:{" "}
-              <span className="negrita">{datos.contrasenya}</span>
-            </p>
-            <p>
-              <span className="negrita">
-                {datos.recordarContrasenya ? "SÍ" : "NO"}
-              </span>
-              &nbsp;has querido recordar la contrasenya
-            </p>
-          </div>
-        )}
+        {paso === 4 && <Paso4 datos={datos}></Paso4>}
       </main>
     </>
   );
